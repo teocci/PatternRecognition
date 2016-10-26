@@ -2,7 +2,12 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BruteCollinearPoints {
 
@@ -16,10 +21,12 @@ public class BruteCollinearPoints {
     /**
      * Created by teocci on 10/25/16.
      *
-     * Brute force Algorithm finds all line segments containing 4 points.
+     * Brute force Algorithm finds all line segments containing 4 points. Examines 4 points at a time
+     * and checks whether they all lie on the same line segment, getting all such line segments.
      *
-     * Examines 4 points at a time and checks whether they all lie on the same line segment,
-     * getting all such line segments.
+     * Throw a java.lang.NullPointerException either the argument to the constructor is null
+     * or if any point in the array is null.
+     * Throw a java.lang.IllegalArgumentException if the argument to the constructor contains a repeated point.
      *
      * @param points an array of points
      */
@@ -37,8 +44,6 @@ public class BruteCollinearPoints {
 
         Arrays.sort(aux);
 
-        ArrayList<LineSegment> foundSegments = new ArrayList<>();
-
         repeatedPointVerified = false;
         for (int p = 0; p < count - 3; p++) {
             for (int q = p + 1; q < count - 2; q++) {
@@ -51,15 +56,13 @@ public class BruteCollinearPoints {
                             segment.add(aux[r]);
                             segment.add(aux[s]);
 
-                            addNewSegment(segment);
+                            addNewSegment();
                         }
                     }
                     if (!repeatedPointVerified) repeatedPointVerified = true;
                 }
             }
         }
-
-        //segments = foundSegments.toArray(new LineSegment[foundSegments.size()]);
     }
 
     /**
@@ -137,10 +140,8 @@ public class BruteCollinearPoints {
 
     /**
      * Adds a segment if its ending point has not been added before
-     *
-     * @param segment a list of point that represents a line segment
      */
-    private void addNewSegment(List<Point> segment) {
+    private void addNewSegment() {
         List<Point> ends = segmentsEnds.get(slope);
 
         Collections.sort(segment);
@@ -166,7 +167,6 @@ public class BruteCollinearPoints {
      * Unit tests the Point data type.
      */
     public static void main(String[] args) {
-
         // read the n points from a file
         In in = new In(args[0]);
         int n = in.readInt();

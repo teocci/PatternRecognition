@@ -89,7 +89,7 @@ public class Point implements Comparable<Point> {
         // Compares two points by y-coordinate
         int diff = this.y - that.y;
         if (diff == 0) {
-            //Breaks ties by x-coordinate
+            // Breaks ties by x-coordinate
             diff = this.x - that.x;
         }
         return diff;

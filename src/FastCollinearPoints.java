@@ -2,7 +2,12 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FastCollinearPoints {
 
@@ -14,7 +19,8 @@ public class FastCollinearPoints {
      *
      * Brute force
      * FastCollinearPoints algorithm finds all line segments containing 4 points.
-     * Throw a java.lang.NullPointerException either the argument to the constructor is null or if any point in the array is null.
+     * Throw a java.lang.NullPointerException either the argument to the constructor is null
+     * or if any point in the array is null.
      * Throw a java.lang.IllegalArgumentException if the argument to the constructor contains a repeated point.
      *
      * FastCollinearPoints should work properly even if the input has 5 or more collinear points.
