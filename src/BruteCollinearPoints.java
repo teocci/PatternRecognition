@@ -16,7 +16,6 @@ public class BruteCollinearPoints {
     private List<Point> segment = new ArrayList<>();
     private int count;
     private double slope;
-    private boolean repeatedPointVerified;
 
     /**
      * Created by teocci on 10/25/16.
@@ -42,9 +41,8 @@ public class BruteCollinearPoints {
             aux[index++] = point;
         }
 
-        Arrays.sort(aux);
+        checkDuplicatedPoints(aux);
 
-        repeatedPointVerified = false;
         for (int p = 0; p < count - 3; p++) {
             for (int q = p + 1; q < count - 2; q++) {
                 for (int r = q + 1; r < count - 1; r++) {
@@ -59,7 +57,6 @@ public class BruteCollinearPoints {
                             addNewSegment();
                         }
                     }
-                    if (!repeatedPointVerified) repeatedPointVerified = true;
                 }
             }
         }
@@ -100,16 +97,17 @@ public class BruteCollinearPoints {
     }
 
     /**
-     * Throws a java.lang.IllegalArgumentException if q is a repeated point.
+     * Throws a java.lang.IllegalArgumentException if there is a duplicate point
      *
-     * @param p a point
-     * @param q a point
+     * @param points an array of points
      */
-    private void checkDuplicatedPoints(Point p, Point q) {
-        if (p.compareTo(q) == 0) {
-            throw new IllegalArgumentException("Duplicated entries in given points");
+    private void checkDuplicatedPoints(Point[] points) {
+        Arrays.sort(points);
+        for (int i = 0; i < points.length - 1; i++) {
+            if (points[i].compareTo(points[i + 1]) == 0) {
+                throw new IllegalArgumentException("Duplicated entries in given points");
+            }
         }
-        segment.add(q);
     }
 
     /**
@@ -126,15 +124,6 @@ public class BruteCollinearPoints {
      */
     private boolean checkEqualSlopes(Point[] points, int p, int q, int r, int s) {
         slope = points[p].slopeTo(points[q]);
-        if (!repeatedPointVerified) {
-            if (s == 3) {
-                checkDuplicatedPoints(points[p], points[q]);
-                checkDuplicatedPoints(points[q], points[r]);
-                checkDuplicatedPoints(points[r], points[s]);
-            } else {
-                checkDuplicatedPoints(points[r], points[s]);
-            }
-        }
         return (slope == points[p].slopeTo(points[r]) && slope == points[p].slopeTo(points[s]));
     }
 
