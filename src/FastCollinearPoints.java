@@ -6,8 +6,8 @@ import java.util.*;
 
 public class FastCollinearPoints {
 
-    private Map<Double, List<Point>> foundSegments = new HashMap<>(); // All found segments
-    private List<LineSegment> segments = new ArrayList<>(); // Valid segments to avoid duplicity
+    private Map<Double, List<Point>> segmentsEnds = new HashMap<>(); // Map all the found segments by the slope value
+    private List<LineSegment> segments = new ArrayList<>(); // Store valid segments to avoid duplicity
 
     /**
      * Created by teocci on 10/25/16.
@@ -33,56 +33,38 @@ public class FastCollinearPoints {
 
         checkDuplicatedPoints(aux);
 
-        for (Point startPoint : points) {
-            Arrays.sort(aux, startPoint.slopeOrder());
+        for (Point p : points) {
+            // Moves p as the first element of aux[] and sort aux[] based on the slope value
+            Arrays.sort(aux, p.slopeOrder());
 
-            List<Point> slopePoints = new ArrayList<>();
+            List<Point> segment = new ArrayList<>();
             double slope = 0;
-            double previousSlope = Double.NEGATIVE_INFINITY;
+            double previousSlope = Double.NEGATIVE_INFINITY; // if (x0, y0) and (x1, y1) are equal.
 
-            for (int i = 1; i < aux.length; i++) {
-                Point comparePoint = aux[i];
-                slope = startPoint.slopeTo(comparePoint);
+            for (Point q : aux) {
+                slope = p.slopeTo(q);
+
+                // add points with the same slope to the segment
                 if (slope == previousSlope) {
-                    slopePoints.add(comparePoint);
+                    segment.add(q);
                 } else {
-                    if (slopePoints.size() >= 3) {
-                        slopePoints.add(startPoint);
-                        addSegmentIfNew(slopePoints, previousSlope);
+                    // if slope change verify that the segment has at least 3 points
+                    if (segment.size() >= 3) {
+                        segment.add(p);
+                        // line segments added because slope change
+                        addNewSegment(segment, previousSlope);
                     }
-                    slopePoints.clear();
-                    slopePoints.add(comparePoint);
+                    segment.clear();
+                    segment.add(q);
                 }
                 previousSlope = slope;
             }
 
-            if (slopePoints.size() >= 3) {
-                slopePoints.add(startPoint);
-                addSegmentIfNew(slopePoints, slope);
+            // Verifies if the segment has 4 or more points
+            if (segment.size() >= 3) {
+                segment.add(p);
+                addNewSegment(segment, slope);
             }
-        }
-    }
-
-    private void addSegmentIfNew(List<Point> slopePoints, double slope) {
-        List<Point> endPoints = foundSegments.get(slope);
-        Collections.sort(slopePoints);
-
-        Point startPoint = slopePoints.get(0);
-        Point endPoint = slopePoints.get(slopePoints.size() - 1);
-
-        if (endPoints == null) {
-            endPoints = new ArrayList<>();
-            endPoints.add(endPoint);
-            foundSegments.put(slope, endPoints);
-            segments.add(new LineSegment(startPoint, endPoint));
-        } else {
-            for (Point currentEndPoint : endPoints) {
-                if (currentEndPoint.compareTo(endPoint) == 0) {
-                    return;
-                }
-            }
-            endPoints.add(endPoint);
-            segments.add(new LineSegment(startPoint, endPoint));
         }
     }
 
@@ -135,6 +117,35 @@ public class FastCollinearPoints {
             if (points[i].compareTo(points[i + 1]) == 0) {
                 throw new IllegalArgumentException("Duplicated entries in given points");
             }
+        }
+    }
+
+    /**
+     * Adds a segment if its ending point has not been added before
+     *
+     * @param segment a list of point that represents a line segment
+     * @param slope the slope value of the line segment points
+     */
+    private void addNewSegment(List<Point> segment, double slope) {
+        List<Point> segmentEnds = segmentsEnds.get(slope);
+
+        Collections.sort(segment);
+        Point p = segment.get(0); // Beginning point of the segment
+        Point q = segment.get(segment.size() - 1); // Ending point of the segment
+
+        if (segmentEnds == null) {
+            segmentEnds = new ArrayList<>();
+            segmentEnds.add(q);
+            segmentsEnds.put(slope, segmentEnds);
+            segments.add(new LineSegment(p, q));
+        } else {
+            for (Point r : segmentEnds) {
+                if (q.compareTo(r) == 0) {
+                    return;
+                }
+            }
+            segmentEnds.add(q);
+            segments.add(new LineSegment(p, q));
         }
     }
 

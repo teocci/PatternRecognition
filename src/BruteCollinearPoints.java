@@ -2,13 +2,16 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 public class BruteCollinearPoints {
 
-    private LineSegment[] segments;
-
+    private Map<Double, List<Point>> segmentsEnds = new HashMap<>(); // Map all the found segments by the slope value
+    private List<LineSegment> segments = new ArrayList<>();
+    private List<Point> segment = new ArrayList<>();
+    private int count;
+    private double slope;
+    private boolean repeatedPointVerified;
 
     /**
      * Created by teocci on 10/25/16.
@@ -16,62 +19,147 @@ public class BruteCollinearPoints {
      * Brute force Algorithm finds all line segments containing 4 points.
      *
      * Examines 4 points at a time and checks whether they all lie on the same line segment,
-     * returning all such line segments.
-     * To verify whether the 4 points p, q, r, and s are collinear,
-     * check whether the three slopes between p and q,
-     * between p and r, and between p and s are all equal.
+     * getting all such line segments.
      *
      * @param points an array of points
      */
     public BruteCollinearPoints(Point[] points) {
+        checkNullPointArray(points);
+        count = points.length;
+
+        // copy points to an aux[]
+        Point[] aux = new Point[count];
+        int index = 0;
+        for (Point point : points) {
+            checkPointNull(point);
+            aux[index++] = point;
+        }
+
+        Arrays.sort(aux);
+
         ArrayList<LineSegment> foundSegments = new ArrayList<>();
 
-        Point[] pointsCopy = Arrays.copyOf(points, points.length);
-        Arrays.sort(pointsCopy);
-        checkDuplicatedEntries(pointsCopy);
+        repeatedPointVerified = false;
+        for (int p = 0; p < count - 3; p++) {
+            for (int q = p + 1; q < count - 2; q++) {
+                for (int r = q + 1; r < count - 1; r++) {
+                    for (int s = r + 1; s < count; s++) {
+                        segment.clear();
+                        if (checkEqualSlopes(aux, p, q, r, s)) {
+                            segment.add(aux[p]);
+                            segment.add(aux[q]);
+                            segment.add(aux[r]);
+                            segment.add(aux[s]);
 
-        for (int p = 0; p < pointsCopy.length - 3; p++) {
-            for (int q = p + 1; q < pointsCopy.length - 2; q++) {
-                for (int r = q + 1; r < pointsCopy.length - 1; r++) {
-                    for (int s = r + 1; s < pointsCopy.length; s++) {
-                        if (pointsCopy[p].slopeTo(pointsCopy[q]) == pointsCopy[p].slopeTo(pointsCopy[r]) &&
-                                pointsCopy[p].slopeTo(pointsCopy[q]) == pointsCopy[p].slopeTo(pointsCopy[s])) {
-                            foundSegments.add(new LineSegment(pointsCopy[p], pointsCopy[s]));
+                            addNewSegment(segment);
                         }
                     }
+                    if (!repeatedPointVerified) repeatedPointVerified = true;
                 }
             }
         }
 
-        segments = foundSegments.toArray(new LineSegment[foundSegments.size()]);
+        //segments = foundSegments.toArray(new LineSegment[foundSegments.size()]);
     }
-
 
     /**
      * Returns the number of line segments that contain 4 collinear points
      */
     public int numberOfSegments() {
-        return segments.length;
+        return segments.size();
     }
 
     /**
      * Returns the line segments that contain 4 collinear points
      */
     public LineSegment[] segments() {
-        return Arrays.copyOf(segments, numberOfSegments());
+        return segments.toArray(new LineSegment[numberOfSegments()]);
     }
 
     /**
-     * Throws a java.lang.IllegalArgumentException if there is a duplicate point
+     * Throws a java.lang.NullPointerException if an array is null
      *
      * @param points an array of points
      */
-    private void checkDuplicatedEntries(Point[] points) {
-        for (int i = 0; i < points.length - 1; i++) {
-            if (points[i].compareTo(points[i + 1]) == 0) {
-                throw new IllegalArgumentException("Duplicated entries in given points");
+    private void checkNullPointArray(Point[] points) {
+        if (points == null)
+            throw new NullPointerException("The argument is null");
+    }
+
+    /**
+     * Throws a java.lang.NullPointerException if a point is null
+     *
+     * @param point an array of points
+     */
+    private void checkPointNull(Point point) {
+        if (point == null)
+            throw new NullPointerException("A point in the array is null");
+    }
+
+    /**
+     * Throws a java.lang.IllegalArgumentException if q is a repeated point.
+     *
+     * @param p a point
+     * @param q a point
+     */
+    private void checkDuplicatedPoints(Point p, Point q) {
+        if (p.compareTo(q) == 0) {
+            throw new IllegalArgumentException("Duplicated entries in given points");
+        }
+        segment.add(q);
+    }
+
+    /**
+     * To verify whether the 4 points p, q, r, and s are collinear,
+     * check whether the three slopes between p and q,
+     * between p and r, and between p and s are all equal.
+     *
+     * @param points an array of points
+     * @param p a point that belongs to the points array
+     * @param q a point that belongs to the points array
+     * @param r a point that belongs to the points array
+     * @param s a point that belongs to the points array
+     * @return true if the 4 points p, q, r, and s are collinear
+     */
+    private boolean checkEqualSlopes(Point[] points, int p, int q, int r, int s) {
+        slope = points[p].slopeTo(points[q]);
+        if (!repeatedPointVerified) {
+            if (s == 3) {
+                checkDuplicatedPoints(points[p], points[q]);
+                checkDuplicatedPoints(points[q], points[r]);
+                checkDuplicatedPoints(points[r], points[s]);
+            } else {
+                checkDuplicatedPoints(points[r], points[s]);
             }
         }
+        return (slope == points[p].slopeTo(points[r]) && slope == points[p].slopeTo(points[s]));
+    }
+
+    /**
+     * Adds a segment if its ending point has not been added before
+     *
+     * @param segment a list of point that represents a line segment
+     */
+    private void addNewSegment(List<Point> segment) {
+        List<Point> ends = segmentsEnds.get(slope);
+
+        Collections.sort(segment);
+        Point p = segment.get(0); // Beginning point of the segment
+        Point q = segment.get(segment.size() - 1); // Ending point of the segment
+
+        if (ends != null) {
+            for (Point r : ends) {
+                if (q.compareTo(r) == 0) {
+                    return;
+                }
+            }
+        } else {
+            ends  = new ArrayList<>();
+        }
+
+        ends.add(q);
+        segmentsEnds.put(slope, ends);
+        segments.add(new LineSegment(p, q));
     }
 
     /**

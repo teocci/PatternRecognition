@@ -87,12 +87,12 @@ public class Point implements Comparable<Point> {
     public int compareTo(Point that) {
         /* YOUR CODE HERE */
         // Compares two points by y-coordinate
-        int sign = this.y - that.y;
-        if (sign == 0) {
+        int diff = this.y - that.y;
+        if (diff == 0) {
             //Breaks ties by x-coordinate
-            sign = this.x - that.x;
+            diff = this.x - that.x;
         }
-        return sign;
+        return diff;
     }
 
     /**
